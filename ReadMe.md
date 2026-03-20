@@ -3,7 +3,43 @@
 - This avoid running access multiple TCP connection and running them in individual Terminal Tab.
 
 ## prerequisites
-- For this demo, ypu must already setup cloudflared tunnel in your server from where you want to expose TCP connection.
+- For this demo, you must already setup cloudflared tunnel in your server from where you want to expose TCP connection.
+- Must install `cloudflared` cli in the client system.
+
+## Installation:
+- We can install using debian file from [Github releases](https://github.com/TheSpiritMan/Cloudflared-TCP-Systemd/releases).
+  ```sh
+  sudo apt install jq -y
+  REPO="TheSpiritMan/Cloudflared-TCP-Systemd"
+  LATEST_URL=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" \
+    | jq -r '.assets[] | select(.name | endswith(".deb")) | .browser_download_url')
+
+  # Download and install
+  curl -L $LATEST_URL -o cloudflared-tcp_latest.deb
+  sudo apt install ./cloudflared-tcp_latest.deb -y
+  ```
+
+- Config can be found in `/etc/cloudflared-tcp.conf`.
+  
+- Setup Cloudflared-tcp:
+  ```sh
+  cloudflared-tcp setup
+  ```
+
+- Check Status:
+  ```sh
+  cloudflared-tcp status
+  ```
+
+- List Expose TCP port:
+  ```sh
+  cloudflared-tcp list
+  ```
+
+- For Help Menu:
+  ```sh
+  cloudflared-tcp help
+  ```
 
 ## Deploy Postgres Deployment
 - For this setup, I am deploying Postgres Container in K8s cluster. It can be anything of our choice.
@@ -42,13 +78,13 @@
 ## Exposing Postgres DB Connection using Cloudflared Tunnel.
 - We will need to add below similar hostname inside cloudlare configMap with our database connection details:
   ```sh
-  - hostname: "postgres-db.sandab.me"
+  - hostname: "postgres-db.example.com"
     service: tcp://postgres.default.svc.cluster.local:5432
     originRequest:
       noTLSVerify: false
   ```
 
-- Here, we need to add DNS record `postgres-db.sandab.me` to `cloudflared-tunnel`.
+- Here, we need to add DNS record `postgres-db.example.com` to `cloudflared-tunnel`.
 
 - Cloudflare does NOT directly expose raw TCP publicly so we must connect through the Cloudflare Tunnel client (cloudflared) locally.
 - Install `cloudflared` cli into system. More details can be found in this [link](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/downloads/):
@@ -69,7 +105,7 @@
 
 - Exposing Postgres Service to local network, here `port` can be any from our choice:
   ```sh
-  cloudflared access tcp --hostname postgres-db.sandab.me --url localhost:15432
+  cloudflared access tcp --hostname postgres-db.example.com --url localhost:15432
   ```
 > Note: We have to keep open this tab for all the connection.
 

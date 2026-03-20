@@ -7,7 +7,7 @@ SERVICE_NAME="cloudflared-tcp"
 
 # Create default config if not exists
 if [ ! -f "$CONFIG_PATH" ]; then
-    echo "postgres-db.sandab.me 15432" > "$CONFIG_PATH"
+    echo "postgres-db.example.com 15432" > "$CONFIG_PATH"
 fi
 
 # Enable systemd service if binary exists
