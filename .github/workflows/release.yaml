@@ -55,11 +55,20 @@ jobs:
         dpkg-deb --build build/cloudflared-tcp_${VERSION}
         # Moving it to the root so the next step finds it easily
         mv build/cloudflared-tcp_${VERSION}.deb .
+    - name: Install changelog generator
+      run: |
+        gem install github_changelog_generator
+
+    - name: Generate changelog
+      run: |
+        github_changelog_generator --user TheSpiritMan --project cloudflared-tcp --future-release v${{ env.VERSION }} > CHANGELOG.md
 
     - name: Upload to GitHub Release
       uses: softprops/action-gh-release@v2
       with:
         # 2. USE EXPRESSION SYNTAX ${{ env.VERSION }}
         files: cloudflared-tcp_${{ env.VERSION }}.deb
+        body: |
+          $(cat CHANGELOG.md)
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
