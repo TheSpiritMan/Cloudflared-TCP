@@ -39,7 +39,14 @@ jobs:
         mkdir -p build/${PKG_NAME}_${VERSION}/usr/local/bin
         mkdir -p build/${PKG_NAME}_${VERSION}/DEBIAN
         cp cloudflared-tcp build/${PKG_NAME}_${VERSION}/usr/local/bin/
-        # ... (rest of your cp commands)
+        # Copy control file
+        cp deb-package/debian/control build/${PKG_NAME}_${VERSION}/DEBIAN/control
+
+        # Copy maintainer scripts
+        cp deb-package/scripts/postinst build/${PKG_NAME}_${VERSION}/DEBIAN/postinst
+        cp deb-package/scripts/postrm build/${PKG_NAME}_${VERSION}/DEBIAN/postrm
+
+        # Make scripts executable
         chmod 755 build/${PKG_NAME}_${VERSION}/DEBIAN/postinst
         chmod 755 build/${PKG_NAME}_${VERSION}/DEBIAN/postrm
 
