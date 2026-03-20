@@ -1,0 +1,10 @@
+#!/bin/bash
+set -e
+
+systemctl stop cloudflared-tcp || true
+systemctl disable cloudflared-tcp || true
+
+rm -f /usr/local/bin/cloudflared-tcp.sh
+rm -f /etc/cloudflared-tcp.conf
+
+exit 0

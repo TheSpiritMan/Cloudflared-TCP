@@ -1,0 +1,10 @@
+Package: cloudflared-tcp
+Version: 0.1.0
+Section: utils
+Priority: optional
+Architecture: amd64
+Maintainer: Sandab Gharti GC  TheSpiritMan <no-mail@sandabgc.com.np>
+Description: CLI tool to manage cloudflared TCP tunnels
+ This CLI manages systemd services for cloudflared TCP tunnels.
+ It allows setup, restart, status, logs, listing services, and cleanup.
+ 

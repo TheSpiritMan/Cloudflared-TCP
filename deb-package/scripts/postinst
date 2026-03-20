@@ -1,0 +1,18 @@
+#!/bin/bash
+set -e
+
+CONFIG_PATH="/etc/cloudflared-tcp.conf"
+SCRIPT_PATH="/usr/local/bin/cloudflared-tcp.sh"
+SERVICE_NAME="cloudflared-tcp"
+
+# Create default config if not exists
+if [ ! -f "$CONFIG_PATH" ]; then
+    echo "postgres-db.sandab.me 15432" > "$CONFIG_PATH"
+fi
+
+# Enable systemd service if binary exists
+if [ -x /usr/local/bin/cloudflared-tcp ]; then
+    systemctl daemon-reload
+    systemctl enable $SERVICE_NAME || true
+    systemctl start $SERVICE_NAME || true
+fi
