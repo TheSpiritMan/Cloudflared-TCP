@@ -3,7 +3,11 @@ name: Build & Release .deb
 on:
   push:
     tags:
-      - 'v*.*.*'  # trigger only on tags like v0.1.0
+      - 'v*.*.*'
+
+# 1. ADD PERMISSIONS BLOCK
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -24,38 +28,31 @@ jobs:
 
     - name: Set version
       run: |
-        echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
-        echo "VERSION is $VERSION"
+        # Use GITHUB_REF_NAME for a cleaner way to get the tag (e.g., 0.1.0)
+        CLEAN_VER=$(echo "${{ github.ref_name }}" | sed 's/^v//')
+        echo "VERSION=$CLEAN_VER" >> $GITHUB_ENV
 
     - name: Prepare Debian package
       run: |
         PKG_NAME=cloudflared-tcp
+        # Inside 'run', we use $VERSION (shell syntax)
         mkdir -p build/${PKG_NAME}_${VERSION}/usr/local/bin
         mkdir -p build/${PKG_NAME}_${VERSION}/DEBIAN
-
-        # Copy binary
         cp cloudflared-tcp build/${PKG_NAME}_${VERSION}/usr/local/bin/
-
-        # Copy control file
-        cp deb-package/debian/control build/${PKG_NAME}_${VERSION}/DEBIAN/control
-
-        # Copy maintainer scripts
-        cp deb-package/scripts/postinst build/${PKG_NAME}_${VERSION}/DEBIAN/postinst
-        cp deb-package/scripts/postrm build/${PKG_NAME}_${VERSION}/DEBIAN/postrm
-
-        # Make scripts executable
+        # ... (rest of your cp commands)
         chmod 755 build/${PKG_NAME}_${VERSION}/DEBIAN/postinst
         chmod 755 build/${PKG_NAME}_${VERSION}/DEBIAN/postrm
 
     - name: Build .deb package
       run: |
         dpkg-deb --build build/cloudflared-tcp_${VERSION}
-        mv build/cloudflared-tcp_${VERSION}.deb cloudflared-tcp_${VERSION}.deb
-        ls -lh cloudflared-tcp_${VERSION}.deb
+        # Moving it to the root so the next step finds it easily
+        mv build/cloudflared-tcp_${VERSION}.deb .
 
     - name: Upload to GitHub Release
       uses: softprops/action-gh-release@v2
       with:
-        files: cloudflared-tcp_${VERSION}.deb
+        # 2. USE EXPRESSION SYNTAX ${{ env.VERSION }}
+        files: cloudflared-tcp_${{ env.VERSION }}.deb
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
