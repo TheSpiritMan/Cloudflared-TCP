@@ -1,16 +1,46 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
 CONFIG_PATH="/etc/cloudflared-tcp.conf"
-SCRIPT_PATH="/usr/local/bin/cloudflared-tcp.sh"
-SERVICE_NAME="cloudflared-tcp"
+SERVICE_FILE="/etc/systemd/system/cloudflared-tcp.service"
 
-# Create default config if not exists
-if [ ! -f "$CONFIG_PATH" ]; then
-    echo "postgres-db.example.com 15432" > "$CONFIG_PATH"
-fi
+case "$1" in
+    configure)
+        # 1. Initialize default config (only if it doesn't exist)
+        if [ ! -f "$CONFIG_PATH" ]; then
+            echo "postgres-db.example.com 15432" > "$CONFIG_PATH"
+            chmod 600 "$CONFIG_PATH" # Security: restrict config access
+        fi
 
-# Enable systemd service if binary exists
-if [ -x /usr/local/bin/cloudflared-tcp ]; then
-    echo "cloudflared-tcp installed successfully"
-fi
+        # 2. Ensure the helper script is executable
+        if [ -f "/usr/local/bin/cloudflared-tcp.sh" ]; then
+            chmod +x "/usr/local/bin/cloudflared-tcp.sh"
+        fi
+
+        # 3. Handle systemd registration
+        if [ -d /run/systemd/system ] && [ -f "$SERVICE_FILE" ]; then
+            systemctl daemon-reload >/dev/null 2>&1 || true
+            systemctl enable cloudflared-tcp.service >/dev/null 2>&1 || true
+            
+            # Restart or Start the service to apply changes
+            if systemctl is-active --quiet cloudflared-tcp.service; then
+                systemctl restart cloudflared-tcp.service >/dev/null 2>&1 || true
+            else
+                systemctl start cloudflared-tcp.service >/dev/null 2>&1 || true
+            fi
+        fi
+
+        echo "cloudflared-tcp configured and started successfully."
+        ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+        # No action needed
+        ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+        ;;
+esac
+
+exit 0
