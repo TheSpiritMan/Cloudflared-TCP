@@ -12,7 +12,5 @@ fi
 
 # Enable systemd service if binary exists
 if [ -x /usr/local/bin/cloudflared-tcp ]; then
-    systemctl daemon-reload
-    systemctl enable $SERVICE_NAME || true
-    systemctl start $SERVICE_NAME || true
+    echo "cloudflared-tcp installed successfully"
 fi
