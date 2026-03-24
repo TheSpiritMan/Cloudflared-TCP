@@ -1,40 +1,36 @@
 #!/bin/sh
 set -e
 
-CONFIG_PATH="/etc/cloudflared-tcp.conf"
+# Define paths
+SCRIPT_PATH="/usr/local/bin/cloudflared-tcp.sh"
 SERVICE_FILE="/etc/systemd/system/cloudflared-tcp.service"
 
 case "$1" in
     configure)
-        # 1. Initialize default config (only if it doesn't exist)
-        if [ ! -f "$CONFIG_PATH" ]; then
-            echo "postgres-db.example.com 15432" > "$CONFIG_PATH"
-            chmod 600 "$CONFIG_PATH" # Security: restrict config access
+        # 1. Ensure the helper script is executable if it exists
+        if [ -f "$SCRIPT_PATH" ]; then
+            chmod +x "$SCRIPT_PATH"
         fi
 
-        # 2. Ensure the helper script is executable
-        if [ -f "/usr/local/bin/cloudflared-tcp.sh" ]; then
-            chmod +x "/usr/local/bin/cloudflared-tcp.sh"
-        fi
-
-        # 3. Handle systemd registration
-        if [ -d /run/systemd/system ] && [ -f "$SERVICE_FILE" ]; then
+        # 2. Handle systemd registration and startup
+        if [ -d /run/systemd/system ]; then
+            # Reload to recognize the new or updated service file
             systemctl daemon-reload >/dev/null 2>&1 || true
-            systemctl enable cloudflared-tcp.service >/dev/null 2>&1 || true
             
-            # Restart or Start the service to apply changes
-            if systemctl is-active --quiet cloudflared-tcp.service; then
-                systemctl restart cloudflared-tcp.service >/dev/null 2>&1 || true
-            else
-                systemctl start cloudflared-tcp.service >/dev/null 2>&1 || true
+            # If the service file exists, enable and start it
+            if [ -f "$SERVICE_FILE" ]; then
+                systemctl enable cloudflared-tcp.service >/dev/null 2>&1 || true
+                
+                if systemctl is-active --quiet cloudflared-tcp.service; then
+                    systemctl restart cloudflared-tcp.service >/dev/null 2>&1 || true
+                else
+                    systemctl start cloudflared-tcp.service >/dev/null 2>&1 || true
+                fi
             fi
         fi
-
-        echo "cloudflared-tcp configured and started successfully."
         ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
-        # No action needed
         ;;
 
     *)

@@ -217,6 +217,6 @@ func main() {
 	case "help", "-h", "--help":
 		help()
 	default:
-		fmt.Println("Usage: cloudflared-tcp {setup|restart|status|logs|cleanup|help}")
+		fmt.Println("Usage: cloudflared-tcp {setup|restart|status|logs|list|cleanup|help}")
 	}
 }
